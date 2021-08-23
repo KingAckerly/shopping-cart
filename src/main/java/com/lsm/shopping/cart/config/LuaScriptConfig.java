@@ -11,6 +11,7 @@ public class LuaScriptConfig {
 
     public final RedisScript<Void> addProduct = getRedisScript("lua/add_product.lua", Void.class);
     public final RedisScript<Void> unitSub = getRedisScript("lua/unit_sub.lua", Void.class);
+    public final RedisScript<Void> inputBack = getRedisScript("lua/input_back.lua", Void.class);
 
     private <T> RedisScript<T> getRedisScript(String path, Class<T> resultType) {
         DefaultRedisScript<T> redisScript = new DefaultRedisScript<>();

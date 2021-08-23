@@ -1,6 +1,7 @@
 package com.lsm.shopping.cart.service.impl;
 
 import com.lsm.shopping.cart.config.LuaScriptConfig;
+import com.lsm.shopping.cart.dto.InputOrBackDTO;
 import com.lsm.shopping.cart.dto.ProductDTO;
 import com.lsm.shopping.cart.mapper.IProductMapper;
 import com.lsm.shopping.cart.mapper.IShoppingCartMapper;
@@ -9,7 +10,9 @@ import com.lsm.shopping.cart.resp.ShoppingCartInfoResp;
 import com.lsm.shopping.cart.resp.ShoppingCartResp;
 import com.lsm.shopping.cart.service.IShoppingCartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -101,6 +104,36 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
         }
         List<ShoppingCartResp> shoppingCartResps = build(shoppingCartBeanList);
         return shoppingCartResps;
+    }
+
+    @Override
+    public void init() {
+        ZSetOperations.TypedTuple<Integer> tuple1 = new DefaultTypedTuple<>(1020, 60.0);
+        ZSetOperations.TypedTuple<Integer> tuple2 = new DefaultTypedTuple<>(1000, 70.0);
+        ZSetOperations.TypedTuple<Integer> tuple3 = new DefaultTypedTuple<>(1038, 80.0);
+        ZSetOperations.TypedTuple<Integer> tuple4 = new DefaultTypedTuple<>(1001, 90.0);
+        ZSetOperations.TypedTuple<Integer> tuple5 = new DefaultTypedTuple<>(1005, 100.0);
+        redisTemplate.opsForZSet().add("ranking-list", new HashSet<>(Arrays.asList(tuple1, tuple2, tuple3, tuple4, tuple5)));
+    }
+
+    @Override
+    public void top() {
+        //升序rangeWithScores
+        //Set<ZSetOperations.TypedTuple<Integer>> tuples = redisTemplate.opsForZSet().rangeWithScores("ranking-list", 0, -1);
+        //降序reverseRangeWithScores
+        Set<ZSetOperations.TypedTuple<Integer>> tuples = redisTemplate.opsForZSet().reverseRangeWithScores("ranking-list", 0, -1);
+        for (ZSetOperations.TypedTuple<Integer> tuple : tuples) {
+            System.out.println(tuple.getValue() + " : " + tuple.getScore());
+        }
+    }
+
+    @Override
+    public void inputOrBack(InputOrBackDTO inputOrBackDTO) {
+        List<Object> keys = new ArrayList<>();
+        keys.add("ranking-list");
+        keys.add(inputOrBackDTO.getProductId());
+        Integer value = inputOrBackDTO.getInputOrBack();
+        redisTemplate.execute(luaScriptConfig.inputBack, keys, value);
     }
 
     /**

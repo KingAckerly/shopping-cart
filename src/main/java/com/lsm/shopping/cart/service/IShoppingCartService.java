@@ -1,5 +1,6 @@
 package com.lsm.shopping.cart.service;
 
+import com.lsm.shopping.cart.dto.InputOrBackDTO;
 import com.lsm.shopping.cart.dto.ProductDTO;
 import com.lsm.shopping.cart.resp.ShoppingCartResp;
 
@@ -15,4 +16,10 @@ public interface IShoppingCartService {
     void unitChange(Integer userId, ProductDTO productDTO);
 
     List<ShoppingCartResp> allRedis(Integer userId);
+
+    void init();
+
+    void top();
+
+    void inputOrBack(InputOrBackDTO inputOrBackDTO);
 }
