@@ -115,4 +115,16 @@ public class ShoppingCartController {
         shoppingCartService.inputOrBack(inputOrBackDTO);
         return "更新商品销量分数成功";
     }
+
+    /**
+     * 测试Redisson分布式锁防止商品库存超卖
+     *
+     * @param productId
+     * @return
+     */
+    @RequestMapping(value = "/testRedisson", method = RequestMethod.POST)
+    public String testRedisson(@RequestParam(value = "productId") String productId) {
+        shoppingCartService.testRedisson(productId);
+        return "测试Redisson分布式锁防止商品库存超卖成功";
+    }
 }

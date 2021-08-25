@@ -1,14 +1,18 @@
 package com.lsm.shopping.cart.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.lsm.shopping.cart.config.LuaScriptConfig;
 import com.lsm.shopping.cart.dto.InputOrBackDTO;
 import com.lsm.shopping.cart.dto.ProductDTO;
+import com.lsm.shopping.cart.entity.ProductEntity;
 import com.lsm.shopping.cart.mapper.IProductMapper;
 import com.lsm.shopping.cart.mapper.IShoppingCartMapper;
 import com.lsm.shopping.cart.resp.ShoppingCartBean;
 import com.lsm.shopping.cart.resp.ShoppingCartInfoResp;
 import com.lsm.shopping.cart.resp.ShoppingCartResp;
 import com.lsm.shopping.cart.service.IShoppingCartService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -34,6 +38,9 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 
     @Autowired
     private IProductMapper productMapper;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Override
     public List<ShoppingCartResp> allMysql(Integer userId) {
@@ -134,6 +141,30 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
         keys.add(inputOrBackDTO.getProductId());
         Integer value = inputOrBackDTO.getInputOrBack();
         redisTemplate.execute(luaScriptConfig.inputBack, keys, value);
+    }
+
+    @Override
+    public void testRedisson(String productId) {
+        String lockKey = "productId:" + productId;
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            lock.lock();
+            ProductEntity productEntity = productMapper.selectById(productId);
+            int stock = productEntity.getStock();
+            if (stock <= 0) {
+                System.out.println("库存不足");
+                return;
+            }
+            productEntity = new ProductEntity();
+            productEntity.setStock(stock - 1);
+            UpdateWrapper updateWrapper = new UpdateWrapper();
+            updateWrapper.eq("id", productId);
+            productMapper.update(productEntity, updateWrapper);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**

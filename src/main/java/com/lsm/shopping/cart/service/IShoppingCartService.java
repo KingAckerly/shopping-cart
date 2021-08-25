@@ -22,4 +22,6 @@ public interface IShoppingCartService {
     void top();
 
     void inputOrBack(InputOrBackDTO inputOrBackDTO);
+
+    void testRedisson(String productId);
 }
