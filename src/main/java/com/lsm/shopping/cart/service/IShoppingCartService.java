@@ -24,4 +24,6 @@ public interface IShoppingCartService {
     void inputOrBack(InputOrBackDTO inputOrBackDTO);
 
     void testRedisson(String productId);
+
+    void testJDBCDeleteBatch();
 }

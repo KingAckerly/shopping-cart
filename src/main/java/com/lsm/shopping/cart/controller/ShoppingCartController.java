@@ -127,4 +127,10 @@ public class ShoppingCartController {
         shoppingCartService.testRedisson(productId);
         return "测试Redisson分布式锁防止商品库存超卖成功";
     }
+
+    @RequestMapping(value = "/testJDBCDeleteBatch", method = RequestMethod.GET, produces = "application/json;charset=utf-8")
+    public String testJDBCDeleteBatch() {
+        shoppingCartService.testJDBCDeleteBatch();
+        return "success";
+    }
 }

@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -164,6 +167,31 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
             e.printStackTrace();
         } finally {
             lock.unlock();
+        }
+    }
+
+    @Override
+    public void testJDBCDeleteBatch() {
+        //模拟jdbc批量删除百万条数据
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/shopping_cart", "root", "root");
+            connection.setAutoCommit(false);
+            Statement statement = connection.createStatement();
+            int count = 1;
+            while (true) {
+                if (count <= 0) {
+                    break;
+                }
+                String sql = "DELETE FROM t_test_delete limit 5";
+                //返回受影响行数,如果是0代表需要删除的数据已经删完了,可以退出循环
+                count = statement.executeUpdate(sql);
+                System.out.println(count);
+                //每删除5000条提交一次事务(这里只是模拟，所以是每5条提交一次事务)
+                connection.commit();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
